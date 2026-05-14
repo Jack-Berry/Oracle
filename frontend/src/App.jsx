@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AccessGate from './components/AccessGate.jsx';
 import LoginScreen from './components/LoginScreen.jsx';
 import OracleScreen from './components/OracleScreen.jsx';
 
@@ -40,15 +41,17 @@ export default function App() {
     setLoggedIn(false);
   }
 
-  if (loggedIn) {
-    return (
-      <OracleScreen
-        displayName={displayName}
-        sessionName={sessionName}
-        onChangeSession={handleChangeSession}
-      />
-    );
-  }
-
-  return <LoginScreen onLogin={handleLogin} />;
+  return (
+    <AccessGate>
+      {loggedIn ? (
+        <OracleScreen
+          displayName={displayName}
+          sessionName={sessionName}
+          onChangeSession={handleChangeSession}
+        />
+      ) : (
+        <LoginScreen onLogin={handleLogin} />
+      )}
+    </AccessGate>
+  );
 }

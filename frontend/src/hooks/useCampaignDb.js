@@ -4,21 +4,7 @@ import {
   collectMigrationData,
   clearMigratedData,
 } from '../utils/migration.js';
-
-// ── API helpers ──────────────────────────────────────────────────────────────
-
-async function apiFetch(method, path, body) {
-  const res = await fetch(path, {
-    method,
-    headers: body !== undefined ? { 'Content-Type': 'application/json' } : {},
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `HTTP ${res.status}`);
-  }
-  return res.json();
-}
+import { apiFetch } from '../utils/apiClient.js';
 
 // Diagnostic fields produced by the PDF mapper (raw and normalized field
 // key arrays). Useful in dev console logs, not useful in the DB — strip

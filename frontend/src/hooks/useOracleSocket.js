@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import { getAccessToken, getApiBaseUrl } from '../utils/apiClient.js';
 
 /**
- * Connects a single Socket.IO client to the current backend host and forwards
+ * Connects a single Socket.IO client to the configured backend and forwards
  * `oracle_response` events to the latest handler. Reconnects automatically.
  *
- * No-arg `io()` connects to window.location.origin, so the same code works
- * from http://localhost:5173 and http://<lan-ip>:5173 — Vite proxies
- * /socket.io to the Express backend (see vite.config.js, ws: true).
+ * Connection target:
+ *   - If VITE_API_BASE_URL is set (production / Vercel → Render), connect
+ *     directly to that origin.
+ *   - Otherwise fall back to window.location.origin so dev (Vite proxy with
+ *     ws: true) and LAN access continue to work unchanged.
+ *
+ * Auth: the access token from localStorage is sent in the handshake `auth`
+ * payload. The backend verifies it in production via socket.io middleware.
+ * An `unauthorized` connect_error dispatches `oracle:unauthorized` so the
+ * AccessGate can re-prompt.
  *
  * Transports are left at the Socket.IO default (polling → upgrade to
  * WebSocket). Forcing 'websocket' first breaks behind some HTTP proxies
@@ -20,17 +28,22 @@ export function useOracleSocket(onOracleResponse) {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const target = `${window.location.origin}/socket.io`;
+    const base = getApiBaseUrl();
+    const target = base || `${window.location.origin}`;
+    const token = getAccessToken();
+
     if (import.meta.env.DEV) {
-      console.log(`[socket] connecting → ${target}`);
+      console.log(`[socket] connecting → ${target}/socket.io`);
     }
 
-    const socket = io({
+    const socketOpts = {
       path: '/socket.io',
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-    });
+      auth: token ? { token } : {},
+    };
+    const socket = base ? io(base, socketOpts) : io(socketOpts);
 
     function handleConnect() {
       setConnected(true);
@@ -51,6 +64,12 @@ export function useOracleSocket(onOracleResponse) {
         console.warn(
           `[socket] connect_error: ${err?.message || err} type=${err?.type || '?'}`
         );
+      }
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('unauthor')) {
+        try {
+          window.dispatchEvent(new CustomEvent('oracle:unauthorized'));
+        } catch {}
       }
     }
     function handleResponse(payload) {

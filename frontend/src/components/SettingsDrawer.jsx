@@ -48,6 +48,7 @@ export default function SettingsDrawer({
   onCreateInvocation,
   onUpdateInvocation,
   onDeleteInvocation,
+  onLockOracle,
 }) {
   if (!open) return null;
 
@@ -210,6 +211,23 @@ export default function SettingsDrawer({
                 sttSupported={sttSupported}
                 isBackendAvailable={isBackendAvailable}
               />
+            </section>
+          )}
+
+          {/* ── Access ── */}
+          {onLockOracle && (
+            <section className="drawer-section">
+              <h3 className="drawer-section-label">Access</h3>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => { onClose(); onLockOracle(); }}
+              >
+                Lock Oracle
+              </button>
+              <p className="drawer-toggle-hint">
+                Clears the access code on this device and re-prompts.
+              </p>
             </section>
           )}
         </div>

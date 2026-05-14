@@ -13,6 +13,7 @@ import { useCampaignDb } from '../hooks/useCampaignDb.js';
 import { useScriptedInvocations } from '../hooks/useScriptedInvocations.js';
 import { useOracleSocket } from '../hooks/useOracleSocket.js';
 import { isSpeechRecognitionSupported } from '../hooks/useSpeechRecognition.js';
+import { apiFetch, lockOracle } from '../utils/apiClient.js';
 
 const AUTO_SEND_KEY = 'oracle_auto_send';
 const DISPLAY_MODE_KEY = 'oracle_display_mode';
@@ -113,9 +114,8 @@ export default function OracleScreen({ displayName, sessionName, onChangeSession
 
   const [backendVoices, setBackendVoices] = useState([]);
   useEffect(() => {
-    fetch('/api/voices')
-      .then(r => r.ok ? r.json() : { voices: [] })
-      .then(data => setBackendVoices(data.voices || []))
+    apiFetch('GET', '/api/voices')
+      .then(data => setBackendVoices(data?.voices || []))
       .catch(() => setBackendVoices([]));
   }, []);
 
@@ -154,27 +154,20 @@ export default function OracleScreen({ displayName, sessionName, onChangeSession
     setOverlayPhase('thinking');
 
     try {
-      const res = await fetch('/api/oracle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question,
-          hiddenContext,
-          campaignContext,
-          campaignId,
-          partyMembers: partyForApi(partyMembers),
-          toneMode,
-          sessionName,
-          displayName,
-          oracleQuirkText,
-          oracleQuirkIntensity,
-          oracleQuirkStyle,
-          oraclePersonalityStyle,
-        }),
+      const data = await apiFetch('POST', '/api/oracle', {
+        question,
+        hiddenContext,
+        campaignContext,
+        campaignId,
+        partyMembers: partyForApi(partyMembers),
+        toneMode,
+        sessionName,
+        displayName,
+        oracleQuirkText,
+        oracleQuirkIntensity,
+        oracleQuirkStyle,
+        oraclePersonalityStyle,
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'The Oracle could not be reached.');
 
       if (import.meta.env.DEV && data.invocation) {
         console.log(
@@ -228,13 +221,11 @@ export default function OracleScreen({ displayName, sessionName, onChangeSession
     setOverlayPhase('thinking');
 
     try {
-      const res = await fetch(`/api/invocations/${inv.id}/trigger`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionName, displayName }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'The Oracle could not be reached.');
+      const data = await apiFetch(
+        'POST',
+        `/api/invocations/${inv.id}/trigger`,
+        { sessionName, displayName }
+      );
 
       const label = (inv.title && inv.title.trim())
         || (inv.triggerPhrase && inv.triggerPhrase.trim())
@@ -374,6 +365,7 @@ export default function OracleScreen({ displayName, sessionName, onChangeSession
         onCreateInvocation={createInvocation}
         onUpdateInvocation={updateInvocation}
         onDeleteInvocation={removeInvocation}
+        onLockOracle={lockOracle}
       />
 
       <header className="oracle-header">

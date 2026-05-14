@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { connect as toneConnect, setContext as toneSetContext, PitchShift } from 'tone';
+import { apiRequest } from '../utils/apiClient.js';
 
 /**
  * Signal graph (backend TTS path):
@@ -82,7 +83,7 @@ export function useAudioEngine() {
     // ── ElevenLabs TTS + Web Audio effects path ───────────────────────────────
     let audioBuffer;
     try {
-      const res = await fetch('/api/tts', {
+      const res = await apiRequest('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, voice: voiceId || undefined }),

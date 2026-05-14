@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { EQUIPMENT, SYNONYMS } from '../data/equipmentPrices.js';
+import { apiFetch } from '../utils/apiClient.js';
 
 // If the best local match scores below this (0–1), the existing flow falls
 // back to the AI pricing assistant for a smarter identification.
@@ -220,13 +221,10 @@ export function useMerchantPricing() {
 
       let aiData = null;
       try {
-        const res = await fetch('/api/merchant/existing-fallback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ itemDescription: description, weakLocalMatches }),
+        aiData = await apiFetch('POST', '/api/merchant/existing-fallback', {
+          itemDescription: description,
+          weakLocalMatches,
         });
-        aiData = await res.json();
-        if (!res.ok) throw new Error(aiData?.error || 'AI fallback failed');
       } catch (fetchErr) {
         // If the fallback fails, fall back to whatever weak local matches we had.
         if (isDev) console.warn('[merchant] AI fallback failed, using local results:', fetchErr.message);
@@ -273,13 +271,10 @@ export function useMerchantPricing() {
     setLoading(true);
     setResults(null);
     try {
-      const res = await fetch('/api/merchant/estimate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemDescription: description, mode: 'custom' }),
+      const data = await apiFetch('POST', '/api/merchant/estimate', {
+        itemDescription: description,
+        mode: 'custom',
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Estimate failed');
 
       const purchaseGp = Number(data.purchasePriceGp) || 0;
       const sellGp = Number(data.sellingPriceGp);
