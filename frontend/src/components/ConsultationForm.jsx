@@ -2,34 +2,31 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import VoiceInputButton from './VoiceInputButton.jsx';
 
 const MAX = 1000;
-const AUTO_SEND_KEY = 'oracle_auto_send';
 
-function loadAutoSend() {
-  try { return JSON.parse(localStorage.getItem(AUTO_SEND_KEY) || 'false'); }
-  catch { return false; }
-}
-
-export default function ConsultationForm({ onSubmit, isLoading }) {
+/**
+ * Primary consultation input area.
+ * autoSend comes from the parent (stored in OracleScreen) so the
+ * SettingsDrawer can toggle it without going through this component.
+ */
+export default function ConsultationForm({ onSubmit, isLoading, autoSend, locked }) {
   const [question, setQuestion] = useState('');
-  const [autoSend, setAutoSend] = useState(loadAutoSend);
 
-  // Keep a ref in sync so handleListeningEnd can read the latest question
-  // value without capturing a stale closure.
   const questionRef = useRef(question);
   useEffect(() => { questionRef.current = question; }, [question]);
 
   const isLoadingRef = useRef(isLoading);
   useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
 
+  const isDisabled = isLoading || locked;
+
   function handleSubmit(e) {
     e.preventDefault();
     const q = question.trim();
-    if (!q || isLoading) return;
+    if (!q || isDisabled) return;
     onSubmit(q);
     setQuestion('');
   }
 
-  // Append each finalised speech chunk to whatever the user has typed
   function handleTranscript(text) {
     setQuestion(prev => {
       const base = prev.trimEnd();
@@ -37,12 +34,9 @@ export default function ConsultationForm({ onSubmit, isLoading }) {
     });
   }
 
-  // Called by VoiceInputButton when recognition ends (pointer released + final
-  // results flushed). If auto-send is on, submit immediately.
   const handleListeningEnd = useCallback(() => {
     if (!autoSend) return;
     if (isLoadingRef.current) return;
-    // Small defer so React has committed the last transcript chunk to state
     setTimeout(() => {
       const q = questionRef.current.trim();
       if (!q || isLoadingRef.current) return;
@@ -51,53 +45,47 @@ export default function ConsultationForm({ onSubmit, isLoading }) {
     }, 100);
   }, [autoSend, onSubmit]);
 
-  function handleAutoSendChange(e) {
-    const val = e.target.checked;
-    setAutoSend(val);
-    try { localStorage.setItem(AUTO_SEND_KEY, JSON.stringify(val)); } catch {}
-  }
-
   return (
-    <form className="consult-form" onSubmit={handleSubmit} noValidate>
-      <div className="field">
-        <label htmlFor="oracle-question">Your Question</label>
-        <textarea
-          id="oracle-question"
-          value={question}
-          onChange={e => setQuestion(e.target.value)}
-          placeholder="Can the rogue attempt to climb the slick obsidian wall silently?"
-          rows={4}
-          maxLength={MAX}
-          disabled={isLoading}
-          aria-describedby="char-count"
-        />
-        <div id="char-count" className="char-count" aria-live="polite">
-          {question.length} / {MAX}
-        </div>
-      </div>
-
+    <div className="consult-area">
       <VoiceInputButton
         onTranscript={handleTranscript}
         onListeningEnd={handleListeningEnd}
-        disabled={isLoading}
+        disabled={isDisabled}
+        large
       />
 
-      <label className="auto-send-row">
-        <input
-          type="checkbox"
-          checked={autoSend}
-          onChange={handleAutoSendChange}
-        />
-        <span>Auto-send spoken question</span>
-      </label>
+      {!autoSend && (
+        <form className="consult-form" onSubmit={handleSubmit} noValidate>
+          <div className="field">
+            <label htmlFor="oracle-question">Your Question</label>
+            <textarea
+              id="oracle-question"
+              value={question}
+              onChange={e => setQuestion(e.target.value)}
+              placeholder="What fate awaits…"
+              rows={3}
+              maxLength={MAX}
+              disabled={isDisabled}
+              aria-describedby="char-count"
+            />
+            <div id="char-count" className="char-count" aria-live="polite">
+              {question.length} / {MAX}
+            </div>
+          </div>
 
-      <button
-        type="submit"
-        className="btn btn-primary"
-        disabled={isLoading || !question.trim()}
-      >
-        {isLoading ? 'Consulting…' : 'Ask the Oracle'}
-      </button>
-    </form>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isDisabled || !question.trim()}
+          >
+            {isLoading ? 'Consulting…' : 'Ask the Oracle'}
+          </button>
+        </form>
+      )}
+
+      {autoSend && question && (
+        <p className="consult-transcript">{question}</p>
+      )}
+    </div>
   );
 }

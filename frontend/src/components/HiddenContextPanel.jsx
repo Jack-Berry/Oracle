@@ -11,14 +11,15 @@ export default function HiddenContextPanel({ value, onChange, onReset }) {
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
       >
-        <span>Hidden Session Context</span>
+        <span>Hidden Session Context <span className="context-scope-pill">this session</span></span>
         <span className={`chevron${open ? ' open' : ''}`} aria-hidden="true">▼</span>
       </button>
 
       {open && (
         <div className="context-body">
           <p className="context-hint">
-            Private notes the Oracle will consider — not visible to players. Party details, campaign secrets, current location, etc.
+            Secrets and situational details for this session only — not visible to players.
+            Resets when you start a new session. For world facts and party info that persist across sessions, use the sections below.
           </p>
           <textarea
             value={value}

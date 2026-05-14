@@ -3,14 +3,11 @@ import { useState } from 'react';
 export default function VoiceSettings({
   settings,
   onUpdate,
-  backendVoices,
-  ttsSupported,
+  voices,
   sttSupported,
   isBackendAvailable,
 }) {
   const [open, setOpen] = useState(false);
-
-  if (!ttsSupported && !sttSupported) return null;
 
   return (
     <div className="voice-settings-panel">
@@ -26,10 +23,8 @@ export default function VoiceSettings({
 
       {open && (
         <div className="context-body">
-          {ttsSupported ? (
-            <>
-              <label className="voice-setting-row">
-                <span>Auto-speak responses</span>
+          <label className="voice-setting-row">
+            <span>Auto-speak responses</span>
                 <input
                   type="checkbox"
                   checked={settings.autoSpeak}
@@ -37,16 +32,16 @@ export default function VoiceSettings({
                 />
               </label>
 
-              {backendVoices.length > 0 && (
+              {voices.length > 0 && (
                 <label className="voice-setting-col">
                   <span>Voice</span>
                   <select
-                    value={settings.voiceName}
-                    onChange={e => onUpdate('voiceName', e.target.value)}
+                    value={settings.voiceId}
+                    onChange={e => onUpdate('voiceId', e.target.value)}
                   >
-                    <option value="">Default</option>
-                    {backendVoices.map(name => (
-                      <option key={name} value={name}>{name}</option>
+                    <option value="">— Select a voice —</option>
+                    {voices.map(v => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
                     ))}
                   </select>
                 </label>
@@ -90,7 +85,7 @@ export default function VoiceSettings({
                 </label>
 
                 <p className="voice-setting-note">
-                  Blend mixes the original voice with a pitch-shifted copy. Higher blend = more shifted voice.
+                  Blend mixes the original with a pitch-shifted copy. 50% layers both simultaneously.
                 </p>
               </div>
 
@@ -168,19 +163,13 @@ export default function VoiceSettings({
                 </label>
 
                 <p className="voice-setting-note">
-                  Feedback controls how many echoes repeat before fading. Above 80% creates long decaying tails.
+                  Feedback controls how many echoes repeat before fading.
                 </p>
               </div>
 
-              {!isBackendAvailable && (
-                <p className="voice-unsupported">
-                  Effects require the backend server. Falling back to browser speech — start the backend to enable processing.
-                </p>
-              )}
-            </>
-          ) : (
+          {!isBackendAvailable && (
             <p className="voice-unsupported">
-              Speech synthesis not supported in this browser.
+              Backend unavailable — voice and effects require the server.
             </p>
           )}
 

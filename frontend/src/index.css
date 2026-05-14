@@ -195,53 +195,957 @@ textarea {
 /* ─── Oracle Screen ────────────────────────────── */
 
 .oracle-screen {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 0 1rem 5rem;
-  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
+
+/* ─── Header ───────────────────────────────────── */
 
 .oracle-header {
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1.5rem;
-  padding: 1.1rem 0 1rem;
-}
-
-.oracle-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.875rem 1rem;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
 }
 
-.oracle-header h1 {
+.oracle-title-main {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   font-weight: 400;
   color: var(--gold);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  text-align: center;
+  flex: 1;
 }
 
-.session-meta {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  margin-top: 0.2rem;
-  letter-spacing: 0.02em;
+.header-spacer {
+  width: 2.5rem;
+  flex-shrink: 0;
 }
 
-/* ─── Intro ────────────────────────────────────── */
+/* ─── Burger button ────────────────────────────── */
 
-.oracle-intro {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--gold);
+.burger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0.4rem 0.5rem;
+  flex-shrink: 0;
   border-radius: var(--radius);
+  transition: background 0.15s;
+}
+
+.burger-btn span {
+  background: var(--text-muted);
+  border-radius: 2px;
+  display: block;
+  height: 2px;
+  width: 22px;
+  transition: background 0.15s;
+}
+
+.burger-btn:hover span { background: var(--text); }
+
+/* ─── Main content area ─────────────────────────── */
+
+.oracle-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1rem 5rem;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.oracle-tagline-main {
   color: var(--text-muted);
   font-style: italic;
-  font-size: 0.9rem;
-  line-height: 1.75;
-  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1.5rem 1rem 0;
+  max-width: 380px;
+  line-height: 1.65;
+}
+
+/* ─── Consultation area ─────────────────────────── */
+
+.consult-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.consult-area .consult-form {
+  width: 100%;
+}
+
+/* Spoken transcript preview (auto-send on) */
+.consult-transcript {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+  text-align: center;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ─── Large push-to-talk button ─────────────────── */
+
+.ptt-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0 0.5rem;
+}
+
+.btn-ptt {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: border-color 0.25s, background 0.25s;
+}
+
+.ptt-ring {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  pointer-events: none;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.btn-ptt:hover:not(:disabled):not(.disabled) {
+  border-color: var(--purple);
+  background: var(--purple-dim);
+}
+
+.btn-ptt:hover:not(:disabled):not(.disabled) .ptt-ring {
+  border-color: rgba(123, 79, 158, 0.35);
+}
+
+.btn-ptt.listening {
+  border-color: var(--purple);
+  background: var(--purple-dim);
+  animation: ptt-pulse 1.3s ease-in-out infinite;
+}
+
+.btn-ptt.listening .ptt-ring {
+  border-color: rgba(123, 79, 158, 0.5);
+  animation: ptt-ring-pulse 1.3s ease-in-out infinite;
+}
+
+.btn-ptt:disabled,
+.btn-ptt.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.ptt-icon {
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.btn-ptt.listening .ptt-icon { color: var(--text); }
+
+.ptt-label {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.btn-ptt.listening .ptt-label { color: var(--text); }
+
+@keyframes ptt-pulse {
+  0%, 100% { border-color: var(--purple); }
+  50%       { border-color: rgba(123, 79, 158, 0.3); }
+}
+
+@keyframes ptt-ring-pulse {
+  0%, 100% { border-color: rgba(123, 79, 158, 0.5); transform: scale(1); }
+  50%       { border-color: rgba(123, 79, 158, 0.15); transform: scale(1.06); }
+}
+
+/* ─── Settings Drawer ──────────────────────────── */
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 50;
+}
+
+.settings-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(85vw, 420px);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 51;
+  display: flex;
+  flex-direction: column;
+  animation: drawer-slide-in 0.22s ease;
+  overflow: hidden;
+}
+
+@keyframes drawer-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
   padding: 1rem 1.25rem;
+  flex-shrink: 0;
+}
+
+.drawer-title {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.drawer-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.15s;
+  border-radius: var(--radius);
+}
+
+.drawer-close:hover { color: var(--text); }
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.drawer-section {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.drawer-section-label {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.drawer-session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.drawer-session-name {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.drawer-session-dm {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.drawer-toggle-row {
+  align-items: center;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.875rem;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.drawer-toggle-row input[type='checkbox'] {
+  accent-color: var(--gold);
+  cursor: pointer;
+  flex-shrink: 0;
+  height: 1.05rem;
+  width: 1.05rem;
+}
+
+.drawer-section-tts-master .drawer-toggle-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.drawer-toggle-hint {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* ─── Oracle Response Overlay ──────────────────── */
+
+.oracle-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  animation: overlay-fade-in 0.7s ease both;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Fog scene — horizontal mist bands ── */
+
+/*
+ * Each layer is a very wide, short horizontal element.
+ * filter: blur() softens the top and bottom edges into the dark background,
+ * exactly like real fog. The horizontal linear-gradient creates irregular
+ * density patches, so the fog looks like rolling mist rather than a uniform haze.
+ * Layers drift at different speeds in opposite directions so they cross and
+ * produce natural density variation through additive layering.
+ */
+
+.fog-scene {
+  position: absolute;
+  inset: 0;
+  background: #03030a;
+  overflow: hidden;
+}
+
+/* Shared band properties */
+.fog-band {
+  position: absolute;
+  will-change: transform;
+}
+
+/* ── Far layer ──
+   Widest, tallest, most diffuse, slowest — deep background mist.
+   Sits at roughly the vertical centre and drifts right. */
+.fog-far {
+  width: 280vw;
+  height: 200px;
+  top: 36%;
+  left: -90vw;
+  /* Multiple irregular density peaks across the band's width */
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(210,208,232,0.05) 8%,
+    rgba(216,213,238,0.13) 22%,
+    rgba(212,210,235,0.08) 35%,
+    rgba(218,215,240,0.16) 50%,
+    rgba(213,210,236,0.09) 63%,
+    rgba(217,214,239,0.14) 77%,
+    rgba(210,208,232,0.06) 90%,
+    transparent            100%
+  );
+  filter: blur(42px);
+  animation: band-right 38s ease-in-out infinite;
+}
+
+/* ── Mid layer A ──
+   Primary visible fog band — drifts left, slightly below centre. */
+.fog-mid-a {
+  width: 250vw;
+  height: 140px;
+  top: 46%;
+  left: -75vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(214,211,237,0.06) 6%,
+    rgba(220,217,243,0.17) 20%,
+    rgba(215,213,239,0.11) 33%,
+    rgba(222,219,245,0.21) 48%,
+    rgba(216,214,240,0.13) 60%,
+    rgba(221,218,244,0.18) 74%,
+    rgba(214,212,238,0.08) 88%,
+    transparent            100%
+  );
+  filter: blur(28px);
+  animation: band-left 25s ease-in-out infinite;
+}
+
+/* ── Mid layer B ──
+   Crosses mid-a moving right — creates density variation where they overlap. */
+.fog-mid-b {
+  width: 230vw;
+  height: 110px;
+  top: 53%;
+  left: -65vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(212,209,236,0.07) 10%,
+    rgba(219,216,242,0.15) 26%,
+    rgba(214,212,238,0.09) 42%,
+    rgba(220,218,244,0.19) 57%,
+    rgba(215,213,239,0.11) 70%,
+    rgba(218,216,241,0.16) 83%,
+    rgba(212,209,236,0.06) 93%,
+    transparent            100%
+  );
+  filter: blur(22px);
+  animation: band-right-offset 20s ease-in-out infinite;
+}
+
+/* ── Near layer ──
+   Thinnest and sharpest — closest to the viewer, slightly faster. */
+.fog-near {
+  width: 210vw;
+  height: 85px;
+  top: 50%;
+  left: -55vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(215,212,238,0.05) 12%,
+    rgba(221,219,244,0.14) 30%,
+    rgba(216,214,240,0.08) 47%,
+    rgba(222,220,246,0.17) 63%,
+    rgba(217,215,241,0.09) 78%,
+    rgba(220,218,244,0.12) 89%,
+    transparent            100%
+  );
+  filter: blur(16px);
+  animation: band-left-offset 16s ease-in-out infinite;
+}
+
+/* ── High wisp ──
+   Thin tendril higher up — represents lighter mist carried on a different
+   air current above the main fog body. */
+.fog-wisp {
+  width: 220vw;
+  height: 65px;
+  top: 40%;
+  left: -60vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(213,210,237,0.04) 15%,
+    rgba(219,217,243,0.10) 38%,
+    rgba(215,212,239,0.06) 55%,
+    rgba(220,218,244,0.12) 72%,
+    rgba(214,211,238,0.05) 88%,
+    transparent            100%
+  );
+  filter: blur(14px);
+  animation: band-right 28s ease-in-out infinite;
+  /* Offset phase so it doesn't mirror fog-far exactly */
+  animation-delay: -12s;
+}
+
+/* ── Floor accumulation ──
+   Heavier fog pools near the bottom — no animation, static presence. */
+.fog-floor {
+  position: absolute;
+  width: 100%;
+  height: 38%;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    to top,
+    rgba(210, 208, 235, 0.09) 0%,
+    rgba(210, 208, 235, 0.05) 35%,
+    transparent              100%
+  );
+  filter: blur(35px);
+}
+
+/* ── Vignette ──
+   Hard dark frame around all edges — ensures text contrast and gives the
+   cinematic "window" feel of stage fog viewed from outside the light cone. */
+.fog-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    /* Top shadow */
+    linear-gradient(to bottom, rgba(2,2,8,0.95) 0%, transparent 30%),
+    /* Bottom shadow */
+    linear-gradient(to top,    rgba(2,2,8,0.95) 0%, transparent 30%),
+    /* Side shadows */
+    radial-gradient(ellipse 75% 75% at 50% 50%,
+      transparent 20%,
+      rgba(2,2,8,0.55) 75%,
+      rgba(2,2,8,0.88) 100%
+    );
+  pointer-events: none;
+}
+
+/* ── Drift keyframes — primarily horizontal, subtle vertical undulation ── */
+
+/* Drifts steadily right then returns */
+@keyframes band-right {
+  0%   { transform: translateX(0vw)   translateY(0px); }
+  30%  { transform: translateX(12vw)  translateY(-4px); }
+  60%  { transform: translateX(18vw)  translateY(3px); }
+  80%  { transform: translateX(10vw)  translateY(-2px); }
+  100% { transform: translateX(0vw)   translateY(0px); }
+}
+
+/* Drifts steadily left then returns */
+@keyframes band-left {
+  0%   { transform: translateX(0vw)   translateY(0px); }
+  25%  { transform: translateX(-10vw) translateY(5px); }
+  55%  { transform: translateX(-18vw) translateY(-3px); }
+  80%  { transform: translateX(-8vw)  translateY(4px); }
+  100% { transform: translateX(0vw)   translateY(0px); }
+}
+
+/* Right drift with a different phase/rhythm from band-right */
+@keyframes band-right-offset {
+  0%   { transform: translateX(-6vw)  translateY(2px); }
+  40%  { transform: translateX(14vw)  translateY(-5px); }
+  70%  { transform: translateX(6vw)   translateY(3px); }
+  100% { transform: translateX(-6vw)  translateY(2px); }
+}
+
+/* Left drift with a different phase/rhythm from band-left */
+@keyframes band-left-offset {
+  0%   { transform: translateX(8vw)   translateY(-2px); }
+  35%  { transform: translateX(-9vw)  translateY(6px); }
+  70%  { transform: translateX(-4vw)  translateY(-3px); }
+  100% { transform: translateX(8vw)   translateY(-2px); }
+}
+
+/* ── Upper atmosphere — 3 thin broken strands above the centre mass ──
+   Lower opacity, smaller height, feathered gradients with transparency
+   gaps so they read as strands rather than solid bands.
+   Each uses a different keyframe, duration, and negative delay so
+   none of them cycle in sync with each other or with the centre layers. */
+
+.fog-upper-a {
+  /* Slow faint strand near the top, drifts right */
+  width: 245vw;
+  height: 44px;
+  top: 8%;
+  left: -72vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(219,216,243,0.04) 7%,
+    rgba(223,221,246,0.09) 18%,
+    rgba(219,216,243,0.04) 26%,
+    transparent            32%,
+    rgba(221,218,244,0.08) 42%,
+    rgba(224,222,247,0.11) 55%,
+    rgba(220,218,243,0.05) 65%,
+    transparent            71%,
+    rgba(222,219,245,0.08) 80%,
+    rgba(223,221,246,0.10) 90%,
+    rgba(219,216,243,0.03) 96%,
+    transparent            100%
+  );
+  filter: blur(11px);
+  animation: wisp-right 44s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+.fog-upper-b {
+  /* Mid-upper strand, drifts left at a different speed */
+  width: 220vw;
+  height: 54px;
+  top: 22%;
+  left: -60vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(217,214,240,0.05) 9%,
+    rgba(221,219,244,0.11) 22%,
+    rgba(217,215,241,0.06) 32%,
+    transparent            38%,
+    rgba(219,217,242,0.09) 48%,
+    rgba(222,220,246,0.13) 60%,
+    rgba(218,216,241,0.07) 70%,
+    transparent            76%,
+    rgba(220,218,244,0.09) 85%,
+    rgba(218,216,242,0.05) 94%,
+    transparent            100%
+  );
+  filter: blur(14px);
+  animation: wisp-left 29s ease-in-out infinite;
+  animation-delay: -16s;
+}
+
+.fog-upper-c {
+  /* Just above the centre mass — wandering strand */
+  width: 230vw;
+  height: 48px;
+  top: 31%;
+  left: -65vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(218,215,241,0.04) 11%,
+    rgba(221,219,245,0.10) 24%,
+    rgba(218,216,242,0.05) 35%,
+    transparent            41%,
+    rgba(220,217,243,0.08) 52%,
+    rgba(223,221,246,0.12) 64%,
+    rgba(219,217,242,0.06) 74%,
+    transparent            80%,
+    rgba(220,218,244,0.07) 89%,
+    rgba(218,216,241,0.03) 95%,
+    transparent            100%
+  );
+  filter: blur(10px);
+  animation: wisp-wander 36s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+/* ── Lower atmosphere — 3 wisps below the centre mass ──
+   Slightly more opacity than the upper wisps because mist naturally
+   accumulates toward the floor. Use opposite/different directions from
+   the upper layers to create cross-currents. */
+
+.fog-lower-a {
+  /* First sub-centre layer, drifts left */
+  width: 238vw;
+  height: 60px;
+  top: 63%;
+  left: -69vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(216,213,239,0.05) 8%,
+    rgba(221,218,244,0.13) 20%,
+    rgba(217,214,240,0.07) 30%,
+    transparent            36%,
+    rgba(219,217,242,0.11) 47%,
+    rgba(222,220,245,0.15) 60%,
+    rgba(218,216,241,0.08) 71%,
+    transparent            77%,
+    rgba(220,218,243,0.10) 86%,
+    rgba(216,214,239,0.05) 94%,
+    transparent            100%
+  );
+  filter: blur(15px);
+  animation: wisp-left 27s ease-in-out infinite;
+  animation-delay: -11s;
+}
+
+.fog-lower-b {
+  /* Wider lower layer, drifts right very slowly */
+  width: 225vw;
+  height: 72px;
+  top: 73%;
+  left: -62vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(215,212,238,0.06) 9%,
+    rgba(220,217,243,0.14) 22%,
+    rgba(216,213,239,0.08) 33%,
+    transparent            39%,
+    rgba(218,216,241,0.12) 50%,
+    rgba(222,219,245,0.17) 63%,
+    rgba(218,215,241,0.09) 74%,
+    transparent            79%,
+    rgba(219,217,242,0.11) 88%,
+    rgba(215,212,238,0.05) 95%,
+    transparent            100%
+  );
+  filter: blur(19px);
+  animation: wisp-right 38s ease-in-out infinite;
+  animation-delay: -22s;
+}
+
+.fog-lower-c {
+  /* Thin strand just above the floor pool — wanders */
+  width: 215vw;
+  height: 50px;
+  top: 83%;
+  left: -58vw;
+  background: linear-gradient(
+    90deg,
+    transparent            0%,
+    rgba(214,211,237,0.05) 12%,
+    rgba(219,216,242,0.10) 26%,
+    rgba(215,212,238,0.05) 38%,
+    transparent            44%,
+    rgba(217,215,240,0.09) 56%,
+    rgba(220,218,244,0.12) 68%,
+    rgba(216,214,239,0.06) 78%,
+    transparent            83%,
+    rgba(218,215,241,0.08) 91%,
+    rgba(214,211,237,0.04) 97%,
+    transparent            100%
+  );
+  filter: blur(13px);
+  animation: wisp-wander 24s ease-in-out infinite;
+  animation-delay: -7s;
+}
+
+/* ── Wisp keyframes ──
+   Smaller horizontal travel than the main band keyframes (8–14vw vs 12–18vw)
+   and slightly more irregular vertical undulation, so the strands feel like
+   they are being moved by a different, lighter air current than the dense
+   centre fog. */
+
+/* Gentle rightward drift with organic bob */
+@keyframes wisp-right {
+  0%   { transform: translateX(0vw)   translateY(0px); }
+  22%  { transform: translateX(7vw)   translateY(-3px); }
+  48%  { transform: translateX(13vw)  translateY(2px); }
+  72%  { transform: translateX(8vw)   translateY(-4px); }
+  88%  { transform: translateX(11vw)  translateY(1px); }
+  100% { transform: translateX(0vw)   translateY(0px); }
+}
+
+/* Gentle leftward drift */
+@keyframes wisp-left {
+  0%   { transform: translateX(0vw)   translateY(0px); }
+  28%  { transform: translateX(-8vw)  translateY(4px); }
+  55%  { transform: translateX(-13vw) translateY(-2px); }
+  78%  { transform: translateX(-6vw)  translateY(3px); }
+  100% { transform: translateX(0vw)   translateY(0px); }
+}
+
+/* Wandering — changes direction mid-cycle, feels like an eddy or curl */
+@keyframes wisp-wander {
+  0%   { transform: translateX(4vw)   translateY(-1px); }
+  20%  { transform: translateX(-3vw)  translateY(4px); }
+  42%  { transform: translateX(10vw)  translateY(-3px); }
+  65%  { transform: translateX(1vw)   translateY(5px); }
+  82%  { transform: translateX(-6vw)  translateY(-2px); }
+  100% { transform: translateX(4vw)   translateY(-1px); }
+}
+
+/* ── Dismiss button ── */
+
+.oracle-overlay__close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 2;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius);
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  padding: 0.4rem 0.875rem;
+  text-transform: uppercase;
+  transition: color 0.2s, border-color 0.2s;
+  /* Fades in gently after the overlay has settled */
+  animation: btn-appear 0.4s ease 2s both;
+}
+
+.oracle-overlay__close:hover {
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+@keyframes btn-appear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Content layer ── */
+
+.oracle-overlay__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  gap: 1.5rem;
+  animation: content-rise 0.8s ease 0.2s both;
+}
+
+@keyframes content-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.oracle-overlay__sigil {
+  font-size: 2.75rem;
+  color: var(--gold);
+  display: block;
+  animation: sigil-breathe 3s ease-in-out infinite;
+}
+
+@keyframes sigil-breathe {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px rgba(201, 168, 76, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 38px rgba(201, 168, 76, 0.85));
+    transform: scale(1.05);
+  }
+}
+
+.oracle-overlay__status {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 1.05rem;
+  animation: breathe 1.8s ease-in-out infinite;
+}
+
+.oracle-overlay__text {
+  color: var(--text);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-style: italic;
+  line-height: 1.95;
+  letter-spacing: 0.025em;
+  margin: 0;
+  border-left: 2px solid rgba(201, 168, 76, 0.6);
+  padding-left: 1.35rem;
+  text-align: left;
+  max-height: 52vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Text fades in slightly after the sigil */
+  animation: oracle-text-reveal 1.4s ease 0.5s both;
+}
+
+@keyframes oracle-text-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.oracle-overlay__actions {
+  display: flex;
+  justify-content: center;
+  animation: oracle-text-reveal 0.6s ease 1s both;
+}
+
+.btn-overlay-speak {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 1.5rem;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-overlay-speak:hover { color: var(--text); border-color: var(--gold); }
+.btn-overlay-speak.speaking { color: #b07bd0; border-color: rgba(123, 79, 158, 0.4); }
+
+.oracle-overlay__cooldown {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  animation: breathe 2.5s ease-in-out infinite, oracle-text-reveal 0.6s ease 1.2s both;
+}
+
+/* ─── History (collapsible) ────────────────────── */
+
+.history-toggle {
+  align-items: center;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: 0.78rem;
+  justify-content: space-between;
+  letter-spacing: 0.08em;
+  padding: 1rem 0;
+  text-transform: uppercase;
+  transition: color 0.15s;
+  width: 100%;
+}
+
+.history-toggle:hover { color: var(--text); }
+
+.history-count {
+  background: var(--surface-alt);
+  border-radius: 10px;
+  color: var(--text-muted);
+  display: inline-block;
+  font-size: 0.68rem;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.45rem;
+}
+
+.history-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  width: 100%;
+}
+
+.history-header-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ─── Hidden Context Panel ─────────────────────── */
@@ -338,7 +1242,6 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
-  margin-bottom: 1.25rem;
   padding: 1.25rem;
 }
 
@@ -353,7 +1256,14 @@ textarea {
   margin-top: 0.25rem;
 }
 
-/* ─── Loading ──────────────────────────────────── */
+/* ─── Status banner width within main ─────────── */
+
+.oracle-main .status-banner {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+/* ─── Loading (legacy — kept for safety) ───────── */
 
 .oracle-loading {
   color: var(--text-muted);
@@ -407,13 +1317,8 @@ textarea {
 .history-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.history-header {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
+  width: 100%;
+  margin-top: 0.75rem;
 }
 
 .history-label {
@@ -426,8 +1331,8 @@ textarea {
 .history-empty {
   color: var(--text-muted);
   font-style: italic;
-  font-size: 0.9rem;
-  padding: 2rem 1rem;
+  font-size: 0.875rem;
+  padding: 1.5rem 0;
   text-align: center;
 }
 
@@ -742,4 +1647,1053 @@ select:focus {
 
 .auto-send-row:hover {
   color: var(--text);
+}
+
+/* ─── Context scope pill (session-only label) ──────── */
+
+.context-scope-pill {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.35rem;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+/* ─── Context character count ──────────────────────── */
+
+.context-char-count {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-align: right;
+  margin-top: -0.25rem;
+}
+
+/* ─── Party Manager ────────────────────────────────── */
+
+.party-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.party-manager-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.party-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.party-empty {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  padding: 0.5rem 0;
+  line-height: 1.5;
+}
+
+/* ── Party card ── */
+
+.party-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.party-card-header {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.party-card-header:hover { background: rgba(255, 255, 255, 0.03); }
+
+.party-card-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.party-char-name {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.party-class-badge {
+  background: var(--purple-dim);
+  border: 1px solid rgba(123, 79, 158, 0.3);
+  border-radius: 4px;
+  color: #b07bd0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  white-space: nowrap;
+}
+
+.party-card-btns {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.1rem;
+}
+
+.party-card-body {
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+}
+
+.party-detail {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.party-detail-label {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-right: 0.3rem;
+}
+
+.party-notes {
+  color: var(--text);
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+}
+
+/* ── File attachments ── */
+
+.party-files-section {
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.625rem;
+}
+
+.party-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.party-file-item {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.party-file-name {
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.party-file-status {
+  background: var(--gold-dim);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 3px;
+  color: var(--gold);
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.35rem;
+  white-space: nowrap;
+}
+
+.party-file-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  opacity: 0.6;
+  padding: 0.1rem 0.2rem;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.party-file-remove:hover { color: var(--error-text); opacity: 1; }
+
+.party-file-error {
+  color: var(--error-text);
+  font-size: 0.78rem;
+}
+
+.party-file-note {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+
+/* ── Add/edit form ── */
+
+.party-form {
+  background: var(--surface);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+}
+
+.party-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.party-form-grid .field:first-child {
+  grid-column: 1 / -1;
+}
+
+.party-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.party-form-actions .btn-primary {
+  width: auto;
+  padding: 0.4rem 1.1rem;
+}
+
+/* ── Parse status colour variants ── */
+
+/* success: character sheet parsed */
+.party-file-status--ok {
+  background: rgba(100, 180, 100, 0.12);
+  border-color: rgba(100, 180, 100, 0.35);
+  color: #7ec87e;
+}
+
+/* partial: some fields missing */
+.party-file-status--warn {
+  background: var(--gold-dim);
+  border-color: rgba(201, 168, 76, 0.35);
+  color: var(--gold);
+}
+
+/* failed: PDF could not be read */
+.party-file-status--err {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+
+/* ── Migration banner ──────────────────────────────────────────────────────── */
+
+.migration-banner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.migration-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.migration-banner-body strong {
+  display: block;
+  color: var(--gold);
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.migration-banner-body p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.migration-error {
+  margin-top: 6px;
+  color: var(--error-text) !important;
+}
+
+.migration-banner-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ─── Invocation trigger panel (controller buttons) ─── */
+
+.invocation-trigger-panel {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.invocation-trigger-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.invocation-trigger-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.invocation-trigger-btn {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  min-height: 44px; /* touch-friendly on iPhone/iPad */
+  padding: 0.5rem 1rem;
+  max-width: 100%;
+}
+
+.invocation-trigger-btn:hover:not(:disabled) {
+  border-color: var(--gold-dim);
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+
+.display-mode-badge {
+  margin: 0 auto 0.75rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ─── Merchant Mode ─────────────────────────────── */
+
+.header-merchant-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.merchant-btn {
+  align-items: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.78rem;
+  gap: 0.35rem;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 0.65rem;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.merchant-btn:hover {
+  color: var(--text);
+  border-color: var(--gold-dim);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.merchant-btn[aria-expanded='true'] {
+  color: var(--gold);
+  border-color: var(--gold-dim);
+}
+
+.merchant-btn-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.merchant-btn-label {
+  text-transform: uppercase;
+}
+
+@media (max-width: 480px) {
+  .merchant-btn-label { display: none; }
+  .merchant-btn { padding: 0.4rem 0.55rem; }
+}
+
+.merchant-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  width: min(92vw, 460px);
+  max-height: 75vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.75rem;
+  animation: merchant-pop 0.16s ease;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes merchant-pop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.merchant-panel-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.merchant-panel-title {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.merchant-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius);
+  transition: color 0.15s;
+}
+
+.merchant-close:hover { color: var(--text); }
+
+.merchant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.merchant-field-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.merchant-textarea {
+  resize: vertical;
+  min-height: 64px;
+  font-size: 0.9rem;
+}
+
+.merchant-char-count {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-align: right;
+  margin-top: -0.25rem;
+}
+
+.merchant-mode-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+}
+
+.merchant-mode-label {
+  margin: 0;
+}
+
+.merchant-segment {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  width: 100%;
+}
+
+.merchant-segment-btn {
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius) - 3px);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.82rem;
+  min-height: 36px;
+  padding: 0.5rem 0.6rem;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.merchant-segment-btn:hover:not(.is-active) {
+  color: var(--text);
+}
+
+.merchant-segment-btn.is-active {
+  background: var(--gold);
+  color: #1a1200;
+  font-weight: 600;
+}
+
+/* ── Economy Scale ── */
+
+.merchant-scale-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+}
+
+.merchant-scale-select {
+  /* Inherits the global select styling but trims height for the compact panel */
+  font-size: 0.88rem;
+  padding: 0.45rem 0.75rem;
+  min-height: 36px;
+}
+
+.merchant-scale-help {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.merchant-scale-help strong {
+  color: var(--gold);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.merchant-scale-hint-inline {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  flex: 1 1 100%;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  opacity: 0.9;
+}
+
+.merchant-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.merchant-go {
+  width: auto;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.9rem;
+}
+
+.merchant-error {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  color: var(--error-text);
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.merchant-status {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-style: italic;
+  padding: 0.25rem 0;
+  animation: breathe 1.8s ease-in-out infinite;
+}
+
+.merchant-results {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.merchant-empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+/* ── Card-style result list ── */
+
+.merchant-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.merchant-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.65rem 0.75rem;
+  /* Containment — long text inside cannot push the card wider than its container. */
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.merchant-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.merchant-card-title {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.merchant-item-name {
+  color: var(--gold);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Item title rendered as a button so the DM can open the description modal.
+   Looks like the plain text title with a hover affordance. */
+.merchant-item-name--btn {
+  background: none;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.merchant-item-name--btn:hover,
+.merchant-item-name--btn:focus-visible {
+  color: var(--text);
+  border-bottom-color: var(--gold);
+  outline: none;
+}
+
+.merchant-cat-pill {
+  background: var(--purple-dim);
+  border: 1px solid rgba(123, 79, 158, 0.35);
+  border-radius: 3px;
+  color: #b07bd0;
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  text-transform: lowercase;
+}
+
+.merchant-confidence {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.merchant-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.merchant-price-label {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.5rem;
+  align-items: baseline;
+}
+
+.merchant-resale-note {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  opacity: 0.85;
+  flex: 1 1 100%;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.merchant-denom-grid {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+.merchant-denom-cell {
+  align-items: center;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.4rem 0.25rem;
+  text-align: center;
+}
+
+.merchant-denom-cell:last-child {
+  border-right: none;
+}
+
+.merchant-denom-unit {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.merchant-denom-value {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* Non-integer denominations render as "--" to suppress fractional amounts
+   without collapsing the grid layout. */
+.merchant-denom-value--empty {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.merchant-reasoning {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.5;
+  padding: 0.5rem 0.6rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.merchant-show-more {
+  align-self: stretch;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.merchant-show-more:hover {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Narrow-screen tweak — denomination grid wraps to two rows on very small panels */
+@media (max-width: 380px) {
+  .merchant-denom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .merchant-denom-cell:nth-child(3) { border-right: none; }
+  .merchant-denom-cell:nth-child(n+4) {
+    border-top: 1px solid var(--border);
+  }
+}
+
+.merchant-source-pill {
+  align-self: flex-start;
+  background: var(--purple-dim);
+  border: 1px solid rgba(123, 79, 158, 0.4);
+  border-radius: 4px;
+  color: #b07bd0;
+  cursor: help;
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+  padding: 0.18rem 0.45rem;
+  text-transform: uppercase;
+}
+
+/* ── Item detail modal ── */
+
+.merchant-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 2, 8, 0.7);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: merchant-fade 0.15s ease;
+}
+
+@keyframes merchant-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.merchant-modal {
+  background: var(--surface);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  width: min(92vw, 460px);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.merchant-modal-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.merchant-modal-title {
+  color: var(--gold);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.merchant-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.25rem 0.4rem;
+  border-radius: var(--radius);
+  transition: color 0.15s;
+}
+
+.merchant-modal-close:hover { color: var(--text); }
+
+.merchant-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+}
+
+.merchant-basis-pill {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.4rem;
+  text-transform: uppercase;
+}
+
+.merchant-basis-official {
+  border-color: rgba(100, 180, 100, 0.35);
+  color: #7ec87e;
+}
+
+.merchant-basis-estimated,
+.merchant-basis-campaign-estimate {
+  border-color: rgba(201, 168, 76, 0.45);
+  color: var(--gold);
+}
+
+.merchant-basis-ai-estimated {
+  border-color: rgba(123, 79, 158, 0.5);
+  color: #b07bd0;
+}
+
+.merchant-modal-prices {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.merchant-modal-price-row {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  justify-content: space-between;
+}
+
+.merchant-modal-price-label {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.merchant-modal-price-value {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.merchant-modal-adjusted {
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.merchant-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.merchant-modal-section--note {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid var(--gold);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-style: italic;
+  padding: 0.4rem 0.6rem;
+}
+
+.merchant-modal-section-label {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.merchant-modal-description {
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.merchant-modal-aliases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.4rem;
+}
+
+.merchant-modal-alias {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
 }

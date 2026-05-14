@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 export default function ConsultationHistory({
   consultations,
   onClear,
@@ -7,42 +9,58 @@ export default function ConsultationHistory({
   isSpeaking,
   ttsSupported,
 }) {
-  if (consultations.length === 0) {
-    return (
-      <section className="history-section">
-        <div className="history-empty">
-          No consultations yet — ask the Oracle your first question.
-        </div>
-      </section>
-    );
-  }
+  const [open, setOpen] = useState(false);
 
   return (
     <section className="history-section" aria-label="Consultation history">
-      <div className="history-header">
-        <span className="history-label">Session Consultations</span>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm btn-danger"
-          onClick={onClear}
-        >
-          Clear History
-        </button>
-      </div>
+      <button
+        type="button"
+        className="history-toggle"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span className="history-label">
+          Session Consultations
+          {consultations.length > 0 && (
+            <span className="history-count">{consultations.length}</span>
+          )}
+        </span>
+        <span className={`chevron${open ? ' open' : ''}`} aria-hidden="true">▾</span>
+      </button>
 
-      <div className="history-list">
-        {consultations.map((c, i) => (
-          <ConsultCard
-            key={c.id}
-            consultation={c}
-            isLatest={i === 0}
-            ttsSupported={ttsSupported}
-            isSpeakingThis={speakingId === c.id && isSpeaking}
-            onSpeak={onSpeak}
-            onStopSpeech={onStopSpeech}
-          />
-        ))}
-      </div>
+      {open && (
+        <div className="history-body">
+          {consultations.length === 0 ? (
+            <div className="history-empty">No consultations yet.</div>
+          ) : (
+            <>
+              <div className="history-header-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm btn-danger"
+                  onClick={onClear}
+                >
+                  Clear History
+                </button>
+              </div>
+
+              <div className="history-list">
+                {consultations.map((c, i) => (
+                  <ConsultCard
+                    key={c.id}
+                    consultation={c}
+                    isLatest={i === 0}
+                    ttsSupported={ttsSupported}
+                    isSpeakingThis={speakingId === c.id && isSpeaking}
+                    onSpeak={onSpeak}
+                    onStopSpeech={onStopSpeech}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </section>
   );
 }

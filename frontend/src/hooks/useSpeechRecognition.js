@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const Recognition =
-  typeof window !== 'undefined'
+  typeof window !== "undefined"
     ? window.SpeechRecognition || window.webkitSpeechRecognition
     : null;
 
@@ -18,7 +18,7 @@ export const isSpeechRecognitionSupported = !!Recognition;
  */
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
-  const [interimText, setInterimText] = useState('');
+  const [interimText, setInterimText] = useState("");
   const [error, setError] = useState(null);
   const ref = useRef(null);
 
@@ -28,10 +28,10 @@ export function useSpeechRecognition() {
     const r = new Recognition();
     r.continuous = true;
     r.interimResults = true;
-    r.lang = 'en-US';
+    r.lang = "en-US";
 
     r.onresult = (e) => {
-      let interim = '';
+      let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
           onFinalResult?.(e.results[i][0].transcript);
@@ -44,15 +44,15 @@ export function useSpeechRecognition() {
 
     r.onerror = (e) => {
       // 'no-speech' is benign — user just didn't say anything before releasing
-      if (e.error !== 'no-speech') setError(e.error);
+      if (e.error !== "no-speech") setError(e.error);
       setIsListening(false);
-      setInterimText('');
+      setInterimText("");
       ref.current = null;
     };
 
     r.onend = () => {
       setIsListening(false);
-      setInterimText('');
+      setInterimText("");
       ref.current = null;
     };
 
@@ -67,7 +67,12 @@ export function useSpeechRecognition() {
     ref.current?.stop();
   }, []);
 
-  useEffect(() => () => { ref.current?.stop(); }, []);
+  useEffect(
+    () => () => {
+      ref.current?.stop();
+    },
+    [],
+  );
 
   return {
     isSupported: isSpeechRecognitionSupported,

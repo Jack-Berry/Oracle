@@ -17,10 +17,19 @@ export function useSpeechSynthesis() {
 
   useEffect(() => {
     if (!isSupported) return;
-    function load() { setVoices(window.speechSynthesis.getVoices()); }
+    function load() {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) setVoices(v);
+    }
     load();
     window.speechSynthesis.addEventListener('voiceschanged', load);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
+    // Chrome sometimes fires voiceschanged before the listener is registered.
+    // A short retry picks up voices that are already available but were missed.
+    const t = setTimeout(load, 100);
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', load);
+      clearTimeout(t);
+    };
   }, [isSupported]);
 
   // reverb and delay are accepted here so callers don't need changing in phase 3,

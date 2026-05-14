@@ -1,29 +1,27 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { connect as toneConnect, setContext as toneSetContext, PitchShift } from 'tone';
 
 /**
- * Fetches audio from /api/tts, decodes it, and plays it through a Web Audio
- * effects graph. This gives real, working reverb, delay, and pitch effects.
+ * Signal graph (backend TTS path):
  *
- * Phase 3 swap: replace the fetch in speak() with any source that returns an
- * ArrayBuffer (ElevenLabs, Google Cloud TTS, etc.) — the effects chain needs
- * no changes.
+ *   srcDry (pitch)                       → GainNode(1-pitchMix) ─┐
+ *   srcWet (pitch) → Tone.PitchShift(st) → GainNode(pitchMix)   ─┘
+ *                                                                  ↓ [preEffects]
+ *                         ┌─────────────────────────────────────── ┤
+ *                         ↓                                         ↓
+ *                   GainNode(1-delay)               DelayNode + FeedbackGain
+ *                         ↓                          GainNode(delay)
+ *                         └──────────── [postDelay] ─────────────────
+ *                         ↓                                         ↓
+ *                   GainNode(1-reverb)               ConvolverNode
+ *                         ↓                          GainNode(reverb)
+ *                         └──────────── [destination]
  *
- * Signal graph:
- *   SourceDry (pitch)       → GainNode(1-pitchMix) ─┐
- *   SourceWet (pitch+shift) → GainNode(pitchMix)   ─┘
- *                                                    ↓ [preEffects]
- *                          ┌──────────────────────── ┤
- *                          ↓                         ↓
- *                    GainNode(1-delay)          DelayNode + FeedbackGain
- *                          ↓                    GainNode(delay)
- *                          └──────────── [postDelay]
- *                          ↓                         ↓
- *                    GainNode(1-reverb)        ConvolverNode
- *                          ↓                    GainNode(reverb)
- *                          └──────────── [destination]
+ * Google voice path (voiceURI set): uses speechSynthesis directly.
+ * Pitch and rate are applied via utterance properties.
+ * Reverb/delay require the backend buffer path and are not applied here.
  */
 
-/** Synthetic exponential-decay noise impulse response — simulates room reverb. */
 function makeReverbIR(ctx, durationSeconds, decayExponent) {
   const len = Math.max(256, Math.floor(ctx.sampleRate * durationSeconds));
   const buf = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -40,6 +38,7 @@ export function useAudioEngine() {
   const ctxRef = useRef(null);
   const activeRef = useRef(null);
   const sourcesRef = useRef([]);
+  const toneNodesRef = useRef([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isBackendAvailable, setIsBackendAvailable] = useState(true);
 
@@ -55,6 +54,8 @@ export function useAudioEngine() {
     activeRef.current = null;
     sourcesRef.current.forEach(s => { try { s.stop(); } catch {} });
     sourcesRef.current = [];
+    toneNodesRef.current.forEach(n => { try { n.dispose(); } catch {} });
+    toneNodesRef.current = [];
     setIsSpeaking(false);
   }, []);
 
@@ -67,7 +68,7 @@ export function useAudioEngine() {
 
     const {
       pitch = 1,
-      pitchShift = 0,
+      pitchShift: pitchShiftSt = 0,
       pitchMix = 0,
       reverb = 0,
       reverbTime = 2,
@@ -75,72 +76,61 @@ export function useAudioEngine() {
       delay = 0,
       delayTime = 0.25,
       delayFeedback = 0.3,
-      voiceName = '',
+      voiceId = '',
     } = settings;
 
-    // ── Fetch audio from backend ──────────────────────────────────────────────
+    // ── ElevenLabs TTS + Web Audio effects path ───────────────────────────────
     let audioBuffer;
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: voiceName || undefined }),
+        body: JSON.stringify({ text, voice: voiceId || undefined }),
       });
       if (!res.ok) throw new Error(`TTS ${res.status}`);
-
       if (activeRef.current !== token) return;
-
       const arrayBuf = await res.arrayBuffer();
       if (activeRef.current !== token) return;
-
       audioBuffer = await getCtx().decodeAudioData(arrayBuf);
       setIsBackendAvailable(true);
     } catch (err) {
-      console.warn('Audio engine: backend TTS failed, falling back to speechSynthesis', err);
+      console.error('Audio engine: TTS failed', err);
       setIsBackendAvailable(false);
-      if (activeRef.current !== token) return;
-
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = pitch;
-        u.onstart = () => setIsSpeaking(true);
-        u.onend = () => setIsSpeaking(false);
-        u.onerror = () => setIsSpeaking(false);
-        window.speechSynthesis.speak(u);
-      }
       return;
     }
 
     if (activeRef.current !== token) return;
     const ctx = getCtx();
+    toneSetContext(ctx);
 
-    // ── Two-source pitch blend ────────────────────────────────────────────────
-    //
-    // srcDry plays at the base pitch; srcWet plays at the shifted pitch.
-    // pitchMix fades between them. Note: playbackRate changes both pitch and
-    // duration, so a lower-pitched source will be longer — the two sources
-    // naturally drift apart for large shifts. This is a Web Audio limitation;
-    // true pitch-shift-without-timestretch requires a phase vocoder.
-    const pitchRate = Math.pow(2, pitchShift / 12);
-
+    // ── Dry source ────────────────────────────────────────────────────────────
     const srcDry = ctx.createBufferSource();
     srcDry.buffer = audioBuffer;
     srcDry.playbackRate.value = pitch;
 
-    const srcWet = ctx.createBufferSource();
-    srcWet.buffer = audioBuffer;
-    srcWet.playbackRate.value = pitch * pitchRate;
-
     const gainDry = ctx.createGain();
     gainDry.gain.value = Math.max(0, 1 - pitchMix);
+    srcDry.connect(gainDry);
+
+    // ── Wet source (Tone.js true pitch shift — no tempo drift) ────────────────
+    const srcWet = ctx.createBufferSource();
+    srcWet.buffer = audioBuffer;
+    srcWet.playbackRate.value = pitch;
 
     const gainWet = ctx.createGain();
     gainWet.gain.value = Math.max(0, pitchMix);
 
+    if (pitchShiftSt !== 0 && pitchMix > 0) {
+      const pitchShifterNode = new PitchShift({ pitch: pitchShiftSt, wet: 1 });
+      toneNodesRef.current.push(pitchShifterNode);
+      toneConnect(srcWet, pitchShifterNode);
+      toneConnect(pitchShifterNode, gainWet);
+    } else {
+      srcWet.connect(gainWet);
+    }
+
+    // ── Pre-effects merge ─────────────────────────────────────────────────────
     const preEffects = ctx.createGain();
-    srcDry.connect(gainDry);
-    srcWet.connect(gainWet);
     gainDry.connect(preEffects);
     gainWet.connect(preEffects);
 
@@ -180,7 +170,6 @@ export function useAudioEngine() {
     postDelay.connect(reverbDryGain);
     postDelay.connect(convolver);
     convolver.connect(reverbWetGain);
-
     reverbDryGain.connect(ctx.destination);
     reverbWetGain.connect(ctx.destination);
 
